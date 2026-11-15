@@ -19,6 +19,10 @@
   .specimen:last-child { border-block-end: 0; }
   .tag { flex: 0 0 11rem; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: var(--rhythm-fs-xs); line-height: var(--rhythm-leading-xs); color: var(--muted); }
   .tag b { color: var(--accent); font-weight: 600; }
+  @media (max-width: 40rem) {
+    .specimen { flex-direction: column; align-items: flex-start; gap: var(--rhythm-space-1); }
+    .tag { flex: none; }
+  }
   .swatches { display: flex; align-items: flex-end; gap: var(--rhythm-space-3); flex-wrap: wrap; }
   .swatch { text-align: center; }
   .swatch i { display: block; width: 2.5rem; margin-inline: auto; background: var(--accent); border-radius: 0.25rem; }
