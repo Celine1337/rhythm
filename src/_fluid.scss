@@ -1,0 +1,104 @@
+// -----------------------------------------------------------------------------
+// rhythm — _fluid.scss
+//
+// The fluid interpolation engine. Turns "size A at viewport X, size B at
+// viewport Y" into a single clamp() expression the browser evaluates live —
+// no JavaScript, no resize listeners, no media-query stair-stepping.
+//
+// The math, in one paragraph: between the two viewport anchors the size is a
+// straight line  size(v) = intercept + slope · v.  Expressing v as 100vw and
+// both anchors in rem makes the slope unitless, so the preferred value is
+// simply `calc(<intercept>rem + <slope·100>vw)`. clamp() then pins the result
+// at the small anchor below the range and the large anchor above it.
+// -----------------------------------------------------------------------------
+
+@use "sass:math";
+@use "sass:map";
+@use "config";
+@use "math" as m;
+
+/// Build a fluid `clamp()` between two sizes across the configured viewport
+/// range (or explicit anchors).
+///
+///     fluid(1rem, 1.5rem)
+///     // → clamp(1rem, 0.8333rem + 0.8333vw, 1.5rem)
+///
+/// (Sass folds the inner calc() into a plain math expression, which clamp()
+/// accepts directly.)
+///
+/// If the two sizes are passed "backwards" (min > max — which happens for
+/// negative scale steps when $ratio-max > $ratio-min), they are swapped so
+/// the emitted clamp() is always well-formed.
+///
+/// @param {Number} $a        — size at the narrow anchor.
+/// @param {Number} $b        — size at the wide anchor.
+/// @param {Number} $from [$config.viewport-min] — narrow viewport anchor.
+/// @param {Number} $to   [$config.viewport-max] — wide viewport anchor.
+/// @return {String} a CSS clamp() expression.
+@function fluid($a, $b, $from: config.$viewport-min, $to: config.$viewport-max) {
+  @if math.compatible($a, $b) == false {
+    @error "fluid(): sizes must share a unit, got #{$a} and #{$b}.";
+  }
+  @if $to <= $from {
+    @error "fluid(): viewport range must grow, got #{$from} → #{$to}.";
+  }
+  $lo: math.min($a, $b);
+  $hi: math.max($a, $b);
+  $slope: math.div($hi - $lo, $to - $from);
+  $intercept: $lo - $slope * $from;
+  $vw: m.rnd($slope * 100);
+  @return clamp(#{m.rnd($lo)}, calc(#{m.rnd($intercept)} + #{$vw}vw), #{m.rnd($hi)});
+}
+
+/// Integer exponent of a named step, with a friendly compile-time error for
+/// typos. `exponent("lg")` → 2; `exponent("huge")` fails the build instead of
+/// silently emitting an empty custom property.
+///
+/// @param {String} $name — key of $config.steps.
+/// @return {Number} unitless exponent.
+@function exponent($name) {
+  $exp: map.get(config.$steps, $name);
+  @if $exp == null {
+    @error "rhythm: unknown type step '#{$name}'. Known steps: #{map.keys(config.$steps)}.";
+  }
+  @return $exp;
+}
+
+/// Fluid size of one named type-scale step, e.g. `step("lg")`.
+///
+/// The small-viewport size uses $ratio-min, the large-viewport size uses
+/// $ratio-max — so the *ratio itself* is fluid, not just the base size.
+///
+/// @param {String} $name — key of $config.steps ("xs" … "4xl").
+/// @return {String} clamp() expression.
+@function step($name) {
+  $exp: exponent($name);
+  $small: m.scale-size(config.$base, config.$ratio-min, $exp);
+  $large: m.scale-size(config.$base-max, config.$ratio-max, $exp);
+  @return fluid($small, $large);
+}
+
+/// Line-height for a named step, snapped UP to whole baseline rows using the
+/// step's largest size. Because the fluid font-size never exceeds that large
+/// size, the fixed line-height always contains the glyphs — rhythm holds at
+/// every viewport width, which a unitless line-height cannot guarantee.
+///
+/// @param {String} $name — key of $config.steps.
+/// @return {Number} length in rem (a multiple of $config.$baseline).
+@function leading($name) {
+  $exp: exponent($name);
+  $large: m.scale-size(config.$base-max, config.$ratio-max, $exp);
+  @return m.snap-up($large, config.$baseline);
+}
+
+/// Convenience: apply a named step's font-size and baseline-snapped
+/// line-height together.
+///
+///     h2 { @include type("xl"); }
+///
+/// @param {String} $name — key of $config.steps.
+@mixin type($name) {
+  $exp: exponent($name); // validate the name at compile time
+  font-size: var(--#{config.$prefix}-fs-#{$name});
+  line-height: var(--#{config.$prefix}-leading-#{$name});
+}

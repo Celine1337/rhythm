@@ -1,0 +1,85 @@
+// -----------------------------------------------------------------------------
+// rhythm — _config.scss
+//
+// Every knob of the toolkit lives here. All variables are declared `!default`,
+// so a consuming project can reconfigure the whole system in one place:
+//
+//     @use "rhythm/src/config" with (
+//       $ratio-min: 1.2,
+//       $ratio-max: 1.333,
+//       $baseline:  0.25rem,
+//       $prefix:    "acme"
+//     );
+//     @use "rhythm/src/main";
+//
+// Because Sass module configuration is global per compilation, configuring
+// this module once reconfigures every other rhythm partial that reads it.
+// -----------------------------------------------------------------------------
+
+/// Root font size the whole scale is derived from. Step 0 ("base") starts at
+/// exactly this size on the smallest supported viewport.
+$base: 1rem !default;
+
+/// Largest font size step 0 ("base") reaches on the widest viewport. Keeping
+/// this close to $base makes body text barely fluid while display sizes —
+/// which are multiplied by the ratio many times — grow dramatically.
+$base-max: 1.125rem !default;
+
+/// Modular-scale ratio applied at the small end of the viewport range.
+/// 1.2 = minor third. Each step up multiplies the size by this factor.
+$ratio-min: 1.2 !default;
+
+/// Modular-scale ratio applied at the large end. A wider ratio on big screens
+/// is the whole point of a *fluid* modular scale: hierarchy strengthens as
+/// room allows, instead of staying frozen at one ratio like classic scales.
+$ratio-max: 1.333 !default;
+
+/// Named steps of the type scale, mapped to integer exponents of the ratio.
+/// Negative exponents produce caption/footnote sizes below body text.
+$steps: (
+  "xs":   -2,
+  "sm":   -1,
+  "base":  0,
+  "md":    1,
+  "lg":    2,
+  "xl":    3,
+  "2xl":   4,
+  "3xl":   5,
+  "4xl":   6,
+) !default;
+
+/// Narrow end of the fluid interpolation range, in rem so the slope math is
+/// unit-free. 20rem = 320px at the default root size.
+$viewport-min: 20rem !default;
+
+/// Wide end of the fluid interpolation range. 80rem = 1280px. Beyond this the
+/// clamp() ceiling holds every size steady — no runaway growth on 4K displays.
+$viewport-max: 80rem !default;
+
+/// The vertical-rhythm quantum. Every line-height and snapped spacing value
+/// is an integer multiple of this length, so text baselines across columns
+/// land on the same invisible grid.
+$baseline: 0.5rem !default;
+
+/// Default body line-height, expressed as a multiple of $baseline.
+/// 3 × 0.5rem = 1.5rem — the classic comfortable body leading.
+$line: 3 * $baseline !default;
+
+/// Number of spacing tokens emitted: --<prefix>-space-1 … -space-N.
+/// Token n equals n × $baseline, so spacing is rhythm-compatible by design.
+$space-steps: 8 !default;
+
+/// Prefix for every emitted CSS custom property and utility class.
+/// Change it to namespace rhythm inside a larger design system.
+$prefix: "rhythm" !default;
+
+/// Named breakpoints for the responsive helpers. Values are min-widths.
+$breakpoints: (
+  "sm": 30rem,
+  "md": 48rem,
+  "lg": 64rem,
+  "xl": 80rem,
+) !default;
+
+/// Color of the baseline-grid debug overlay (see _debug.scss).
+$grid-color: rgba(235, 167, 185, 0.35) !default;

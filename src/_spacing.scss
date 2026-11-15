@@ -1,0 +1,90 @@
+// -----------------------------------------------------------------------------
+// rhythm — _spacing.scss
+//
+// Spacing that belongs to the same grid as the type. Every token is an integer
+// multiple of the baseline quantum ($config.$baseline), so a margin of
+// `space(3)` is exactly one body line tall and blocks stack without drifting
+// off the baseline grid.
+//
+// Two flavours are provided:
+//   * fixed tokens  — space(2) → 1rem, resolved at compile time;
+//   * fluid spacing — space-fluid(2, 6) → a clamp() that grows with the
+//     viewport, for section padding that should breathe on wide screens.
+// -----------------------------------------------------------------------------
+
+@use "sass:math";
+@use "config";
+@use "fluid";
+
+/// Value of spacing token `$n`: exactly `$n × $baseline`.
+///
+///     space(3)  // → 1.5rem  (one body line at the default config)
+///     space(0)  // → 0rem
+///
+/// @param {Number} $n — token index, unitless and ≥ 0. Fractional indexes are
+///   rejected: half-row spacing is how vertical rhythm quietly dies.
+/// @return {Number} length in the baseline's unit.
+@function space($n) {
+  @if math.is-unitless($n) == false {
+    @error "space(): token index must be unitless, got #{$n}.";
+  }
+  @if $n < 0 or math.round($n) != $n {
+    @error "space(): token index must be a whole number ≥ 0, got #{$n}.";
+  }
+  @return $n * config.$baseline;
+}
+
+/// Fluid spacing between two token indexes across the configured viewport
+/// range. Useful for section padding and gaps that should expand on desktop.
+///
+///     space-fluid(2, 6)
+///     // → clamp(1rem, 0.3333rem + 3.3333vw, 3rem)
+///
+/// @param {Number} $a — token index at the narrow anchor.
+/// @param {Number} $b — token index at the wide anchor.
+/// @return {String} a CSS clamp() expression.
+@function space-fluid($a, $b) {
+  @return fluid.fluid(space($a), space($b));
+}
+
+/// Grid-aligned gap for flex/grid containers.
+///
+///     .cards { @include gap(4); }   // gap: 2rem
+///
+/// @param {Number} $n — spacing token index.
+@mixin gap($n) {
+  gap: space($n);
+}
+
+/// Fluid, grid-aligned gap: `$a` rows narrow, `$b` rows wide.
+///
+/// @param {Number} $a — token index at the narrow anchor.
+/// @param {Number} $b — token index at the wide anchor.
+@mixin fluid-gap($a, $b) {
+  gap: space-fluid($a, $b);
+}
+
+/// Grid-aligned padding on all four sides.
+///
+/// @param {Number} $n — spacing token index.
+@mixin pad($n) {
+  padding: space($n);
+}
+
+/// Grid-aligned block margins (top + bottom), the rhythm-safe way to separate
+/// stacked blocks. Inline margins stay untouched.
+///
+/// @param {Number} $n — spacing token index.
+@mixin margin-block($n) {
+  margin-block: space($n);
+}
+
+/// Grid-aligned margins with independent block/inline token indexes.
+///
+///     @include margin(3, 0);   // margin: 1.5rem 0
+///
+/// @param {Number} $block — token index for top/bottom.
+/// @param {Number} $inline [0] — token index for left/right.
+@mixin margin($block, $inline: 0) {
+  margin: space($block) space($inline);
+}

@@ -1,0 +1,94 @@
+// -----------------------------------------------------------------------------
+// rhythm — _baseline.scss
+//
+// Vertical-rhythm primitives. The contract of a baseline grid is simple:
+// every line box occupies a whole number of baseline rows, and every margin
+// between blocks is a whole number of rows too. Then baselines in adjacent
+// columns line up no matter what mix of headings, body text and captions a
+// page contains.
+//
+// The subtlety with *fluid* type: a unitless line-height (e.g. 1.5) scales
+// with the font-size, so the line box height slides continuously between grid
+// rows as the viewport changes. rhythm instead snaps line-heights to fixed
+// row multiples computed from each step's LARGEST size — the fluid font-size
+// can never outgrow its line box, so the grid holds at every width.
+// -----------------------------------------------------------------------------
+
+@use "sass:math";
+@use "config";
+@use "math" as m;
+
+/// Line-height for an arbitrary font size, snapped UP to whole baseline rows.
+/// Always rounds up: a line box smaller than its glyphs clips descenders and
+/// breaks the grid, so the safe direction is the only direction.
+///
+///     leading-for(1.125rem)   // → 1.5rem  (3 rows of 0.5rem)
+///     leading-for(2rem)       // → 2rem    (exactly 4 rows)
+///
+/// @param {Number} $size — font size (any length unit).
+/// @param {Number} $baseline [$config.$baseline] — grid quantum.
+/// @return {Number} length, a whole multiple of $baseline.
+@function leading-for($size, $baseline: config.$baseline) {
+  @return m.snap-up($size, $baseline);
+}
+
+/// How many baseline rows a font size occupies (≥ 1).
+///
+/// @param {Number} $size — font size.
+/// @return {Number} unitless row count.
+@function rows($size) {
+  @return m.rows-for($size, config.$baseline);
+}
+
+/// Apply an arbitrary font size with a grid-snapped line-height. Use this for
+/// one-off sizes outside the named scale; for scale steps prefer fluid.type().
+///
+///     .pull-quote { @include text(1.75rem); }        // line-height: 2rem
+///     .tight      { @include text(1.75rem, $rows: 5); } // force 2.5rem
+///
+/// @param {Number} $size — font size.
+/// @param {Number} $rows [null] — optional explicit row count; defaults to
+///   the minimum whole rows that contain $size.
+@mixin text($size, $rows: null) {
+  font-size: $size;
+  @if $rows == null {
+    line-height: leading-for($size);
+  } @else {
+    @if math.is-unitless($rows) == false or $rows < 1 {
+      @error "text(): $rows must be a unitless count ≥ 1, got #{$rows}.";
+    }
+    line-height: $rows * config.$baseline;
+  }
+}
+
+/// The "lobotomised owl" stack: every child after the first gets a top margin
+/// of `$n` baseline rows. Margins collapse predictably and the first child
+/// never pushes its container down, which keeps outer rhythm intact.
+///
+///     article { @include flow(3); }   // 1.5rem between blocks
+///
+/// @param {Number} $n [3] — spacing token index between children.
+@mixin flow($n: 3) {
+  > * + * {
+    margin-block-start: $n * config.$baseline;
+  }
+}
+
+/// Snap an existing margin value to the nearest whole row. Handy when a
+/// design hands you "22px" and the grid demands 1rem or 1.5rem.
+///
+///     .card { margin-block-end: snap-margin(1.3rem); }  // → 1.5rem
+///
+/// @param {Number} $value — proposed margin length.
+/// @return {Number} nearest whole multiple of $config.$baseline.
+@function snap-margin($value) {
+  @return m.snap-nearest($value, config.$baseline);
+}
+
+/// Establish the body rhythm on a container: the default line box every
+/// descendant inherits unless it opts into a scale step.
+///
+/// @param {Number} $line [$config.$line] — line box height (a row multiple).
+@mixin rhythm($line: config.$line) {
+  line-height: $line;
+}

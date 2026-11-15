@@ -1,0 +1,75 @@
+// -----------------------------------------------------------------------------
+// rhythm — _responsive.scss
+//
+// Responsive helpers built on the named breakpoints in $config.$breakpoints.
+// All helpers are min-width ("mobile-first") except below(), and all accept
+// @content blocks so they read like plain CSS:
+//
+//     .sidebar {
+//       display: none;
+//       @include responsive.above("md") { display: block; }
+//     }
+//
+// below()/between() use CSS Media Queries level 4 range syntax (`width < X`),
+// supported by every evergreen browser. above() sticks to classic min-width
+// because that is what most tooling greps for.
+// -----------------------------------------------------------------------------
+
+@use "sass:map";
+@use "config";
+@use "fluid";
+
+/// Resolve a named breakpoint to its min-width length, with a compile-time
+/// error for unknown names.
+///
+/// @param {String} $name — key of $config.$breakpoints ("sm"…"xl").
+/// @return {Number} length.
+@function bp($name) {
+  $value: map.get(config.$breakpoints, $name);
+  @if $value == null {
+    @error "rhythm: unknown breakpoint '#{$name}'. Known: #{map.keys(config.$breakpoints)}.";
+  }
+  @return $value;
+}
+
+/// Styles for viewports at least `$name` wide (inclusive).
+///
+/// @param {String} $name — breakpoint name.
+@mixin above($name) {
+  @media (min-width: bp($name)) {
+    @content;
+  }
+}
+
+/// Styles for viewports narrower than `$name` (exclusive — at exactly the
+/// breakpoint width, above() wins, so the two never overlap).
+///
+/// @param {String} $name — breakpoint name.
+@mixin below($name) {
+  @media (width < bp($name)) {
+    @content;
+  }
+}
+
+/// Styles for the half-open range [$a, $b): at least $a, narrower than $b.
+///
+/// @param {String} $a — lower breakpoint name.
+/// @param {String} $b — upper breakpoint name.
+@mixin between($a, $b) {
+  @media (min-width: bp($a)) and (width < bp($b)) {
+    @content;
+  }
+}
+
+/// Make ANY length property fluid between two values across the configured
+/// viewport range — the same clamp() engine the type scale uses, applied to
+/// padding, gaps, widths, radii…
+///
+///     .hero { @include fluid-prop(padding-block, 2rem, 6rem); }
+///
+/// @param {String} $property — CSS property name.
+/// @param {Number} $a — value at the narrow anchor.
+/// @param {Number} $b — value at the wide anchor.
+@mixin fluid-prop($property, $a, $b) {
+  #{$property}: fluid.fluid($a, $b);
+}

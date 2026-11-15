@@ -1,0 +1,70 @@
+// -----------------------------------------------------------------------------
+// rhythm — _math.scss
+//
+// Small numeric helpers shared by the fluid-type and baseline engines.
+// Everything here is pure: no configuration reads, no CSS output.
+// -----------------------------------------------------------------------------
+
+@use "sass:math";
+
+/// Round a number (with or without a unit) to `$places` decimals.
+///
+/// Sass emits full double precision by default, which turns a tidy slope into
+/// `0.8928571428571429vw`. Rounding to four decimals keeps the compiled CSS
+/// readable and diffs stable, with sub-pixel error far below anything a
+/// browser can render.
+///
+/// @param {Number} $n      — value to round; its unit is preserved.
+/// @param {Number} $places — decimal places (default 4).
+/// @return {Number}
+@function rnd($n, $places: 4) {
+  $f: math.pow(10, $places);
+  @return math.div(math.round($n * $f), $f);
+}
+
+/// Size of a modular-scale step: `$base * $ratio ^ $step`.
+///
+/// Negative steps are legal — `scale-size(1rem, 1.25, -2)` yields 0.64rem,
+/// which is how caption sizes are derived from the same ratio as headings.
+///
+/// @param {Number} $base  — step-0 size.
+/// @param {Number} $ratio — scale ratio (unitless).
+/// @param {Number} $step  — integer exponent, may be negative.
+/// @return {Number} size in the same unit as $base.
+@function scale-size($base, $ratio, $step) {
+  @return $base * math.pow($ratio, $step);
+}
+
+/// Snap a length UP to the next whole multiple of `$step`.
+///
+/// This is the vertical-rhythm workhorse: a line-height must never be smaller
+/// than the glyphs it contains, so we always round up, never to nearest.
+/// `snap-up(1.125rem, 0.5rem)` → 1.5rem.
+///
+/// @param {Number} $value — length to snap.
+/// @param {Number} $step  — grid quantum, same unit as $value.
+/// @return {Number}
+@function snap-up($value, $step) {
+  @return math.ceil(math.div($value, $step)) * $step;
+}
+
+/// Snap a length to the NEAREST multiple of `$step` (for margins/padding,
+/// where rounding down is fine and keeps layouts tight).
+///
+/// @param {Number} $value — length to snap.
+/// @param {Number} $step  — grid quantum, same unit as $value.
+/// @return {Number}
+@function snap-nearest($value, $step) {
+  @return math.round(math.div($value, $step)) * $step;
+}
+
+/// How many whole baseline rows a given font size needs at minimum.
+/// Returns an integer ≥ 1 so even tiny caption text occupies one full row.
+///
+/// @param {Number} $size     — font size.
+/// @param {Number} $baseline — grid quantum.
+/// @return {Number} unitless row count.
+@function rows-for($size, $baseline) {
+  $rows: math.ceil(math.div($size, $baseline));
+  @return math.max(1, $rows);
+}

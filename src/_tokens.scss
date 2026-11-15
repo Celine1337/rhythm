@@ -1,0 +1,42 @@
+// -----------------------------------------------------------------------------
+// rhythm — _tokens.scss
+//
+// Emits the whole design system as CSS custom properties, so the compiled
+// stylesheet is useful even without writing any Sass: every fluid size,
+// leading and spacing token is reachable as var(--rhythm-…).
+//
+// The mixin is selector-agnostic: call it on :root for a global system, or on
+// a component class to re-scope the tokens locally (handy for a dense widget
+// that wants a smaller baseline without recompiling).
+// -----------------------------------------------------------------------------
+
+@use "config";
+@use "fluid";
+@use "spacing";
+
+/// Emit all rhythm tokens at the current selector.
+///
+/// Token families (with the default $prefix "rhythm"):
+///   --rhythm-baseline, --rhythm-line      grid quantum + body line box
+///   --rhythm-ratio-min, --rhythm-ratio-max  the fluid modular ratios
+///   --rhythm-vp-min, --rhythm-vp-max      the fluid interpolation anchors
+///   --rhythm-fs-<step>                    clamp() font sizes, xs … 4xl
+///   --rhythm-leading-<step>               baseline-snapped line heights
+///   --rhythm-space-1 … --rhythm-space-N   spacing tokens (n × baseline)
+@mixin root {
+  --#{config.$prefix}-baseline: #{config.$baseline};
+  --#{config.$prefix}-line: #{config.$line};
+  --#{config.$prefix}-ratio-min: #{config.$ratio-min};
+  --#{config.$prefix}-ratio-max: #{config.$ratio-max};
+  --#{config.$prefix}-vp-min: #{config.$viewport-min};
+  --#{config.$prefix}-vp-max: #{config.$viewport-max};
+
+  @each $name, $exp in config.$steps {
+    --#{config.$prefix}-fs-#{$name}: #{fluid.step($name)};
+    --#{config.$prefix}-leading-#{$name}: #{fluid.leading($name)};
+  }
+
+  @for $i from 1 through config.$space-steps {
+    --#{config.$prefix}-space-#{$i}: #{spacing.space($i)};
+  }
+}

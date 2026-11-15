@@ -1,0 +1,102 @@
+// -----------------------------------------------------------------------------
+// rhythm — _base.scss
+//
+// Opinionated-but-gentle element defaults: the type scale mapped onto HTML
+// headings, body text on the baseline grid, and block margins that are whole
+// grid rows. Importing main.scss gives you a page that already has rhythm
+// before you write a single class.
+//
+// Type reads the fluid CSS custom properties emitted by tokens.root, so
+// re-configuring $config (prefix, ratios, baseline) re-tunes these defaults
+// automatically. Block margins use compile-time grid multiples instead of
+// space tokens, so they stay valid even if $space-steps is trimmed below 6.
+// -----------------------------------------------------------------------------
+
+@use "config";
+@use "fluid";
+@use "spacing";
+
+html {
+  font-size: 100%; // honour the user's browser font-size preference
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  font-size: var(--#{config.$prefix}-fs-base);
+  line-height: var(--#{config.$prefix}-leading-base);
+}
+
+// Headings descend the scale from 3xl to base. Top margins are whole grid
+// rows, so a heading always starts on a baseline no matter what precedes it.
+h1, h2, h3, h4, h5, h6 {
+  margin-block: 0 spacing.space(2);
+  font-weight: 700;
+  text-wrap: balance;
+}
+
+h1 {
+  @include fluid.type("3xl");
+  margin-block-start: spacing.space(6);
+}
+
+h2 {
+  @include fluid.type("2xl");
+  margin-block-start: spacing.space(5);
+}
+
+h3 {
+  @include fluid.type("xl");
+  margin-block-start: spacing.space(4);
+}
+
+h4 {
+  @include fluid.type("lg");
+  margin-block-start: spacing.space(4);
+}
+
+h5 {
+  @include fluid.type("md");
+  margin-block-start: spacing.space(3);
+}
+
+h6 {
+  @include fluid.type("base");
+  margin-block-start: spacing.space(3);
+}
+
+// One body line (space-3 = 3 rows) between blocks: the classic rhythm unit.
+p, ul, ol, blockquote, pre, figure, table {
+  margin-block: 0 spacing.space(3);
+}
+
+ul, ol {
+  padding-inline-start: spacing.space(4);
+}
+
+blockquote {
+  margin-inline: 0;
+  padding-inline-start: spacing.space(3);
+  border-inline-start: 2px solid currentColor;
+}
+
+pre, code, kbd, samp {
+  font-family: ui-monospace, "Cascadia Code", "Source Code Pro", Menlo, Consolas, monospace;
+}
+
+pre {
+  @include fluid.type("sm");
+  overflow-x: auto;
+}
+
+hr {
+  border: 0;
+  border-block-start: 1px solid currentColor;
+  margin-block: spacing.space(4);
+}
+
+img, video, canvas {
+  max-width: 100%;
+  height: auto;
+}

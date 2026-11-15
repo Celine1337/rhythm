@@ -1,0 +1,66 @@
+// -----------------------------------------------------------------------------
+// rhythm — _utilities.scss
+//
+// A small, deliberate set of utility classes generated from the same config
+// as the tokens — no separate magic numbers anywhere:
+//
+//   .rhythm-fs-<step>        apply a scale step (size + snapped leading)
+//   .rhythm-flow             baseline-row gaps between stacked children
+//   .rhythm-measure          comfortable prose line length
+//   .rhythm-wrap             centred page container with fluid gutters
+//   .rhythm-cols             1 column → 2 columns at the md breakpoint
+//   .rhythm-hide-below-<bp>  responsive visibility, one class per breakpoint
+//
+// Unlike the element defaults in _base.scss, these classes deliberately
+// consume the space tokens at runtime (so re-scoping tokens on a container
+// re-tunes them); keep $space-steps ≥ 4 when using them.
+// -----------------------------------------------------------------------------
+
+@use "config";
+@use "fluid";
+@use "responsive";
+
+// One class per named scale step.
+@each $name, $exp in config.$steps {
+  .#{config.$prefix}-fs-#{$name} {
+    @include fluid.type($name);
+  }
+}
+
+// Stacked children separated by exactly one body line.
+.#{config.$prefix}-flow {
+  > * + * {
+    margin-block-start: var(--#{config.$prefix}-space-3);
+  }
+}
+
+// ~66 characters per line: the classic readability measure.
+.#{config.$prefix}-measure {
+  max-width: 66ch;
+}
+
+// Centred container capped at the wide fluid anchor, gutters on the grid.
+.#{config.$prefix}-wrap {
+  max-width: config.$viewport-max;
+  margin-inline: auto;
+  padding-inline: var(--#{config.$prefix}-space-4);
+}
+
+// Single column on phones, two columns from the md breakpoint up.
+.#{config.$prefix}-cols {
+  display: grid;
+  gap: var(--#{config.$prefix}-space-4);
+
+  @include responsive.above("md") {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// Responsive visibility: hidden below the named breakpoint, visible above.
+@each $name, $width in config.$breakpoints {
+  .#{config.$prefix}-hide-below-#{$name} {
+    @include responsive.below($name) {
+      display: none;
+    }
+  }
+}

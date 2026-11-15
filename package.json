@@ -1,0 +1,24 @@
+{
+  "name": "rhythm",
+  "version": "1.0.0",
+  "description": "Fluid typography and vertical-rhythm SCSS toolkit: clamp()-based modular scale, baseline grid, spacing tokens.",
+  "private": true,
+  "scripts": {
+    "build": "sass --no-source-map src/main.scss dist/rhythm.css",
+    "test": "bash test.sh"
+  },
+  "keywords": [
+    "scss",
+    "sass",
+    "typography",
+    "vertical-rhythm",
+    "fluid-type",
+    "clamp",
+    "baseline-grid"
+  ],
+  "license": "MIT",
+  "author": "Celine1337",
+  "devDependencies": {
+    "sass": "^1.108.2"
+  }
+}

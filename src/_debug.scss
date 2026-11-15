@@ -1,0 +1,35 @@
+// -----------------------------------------------------------------------------
+// rhythm — _debug.scss
+//
+// See the grid you are designing on. The overlay paints one hairline per
+// baseline row as a repeating background gradient — pure CSS, no extra DOM,
+// and it scrolls with the content it is applied to.
+//
+// Toggle it on any container (or <body>) while developing:
+//
+//     body { @include debug.grid-overlay; }
+//
+// or use the ready-made class .rhythm-debug-grid emitted by main.scss.
+// -----------------------------------------------------------------------------
+
+@use "config";
+
+/// Paint the baseline grid as a background overlay on the current element.
+///
+/// @param {Color} $color [$config.$grid-color] — hairline color; the default
+///   is a translucent rose that stays legible on light and dark surfaces.
+/// @param {Number} $step [$config.$baseline] — row height to visualise.
+@mixin grid-overlay($color: config.$grid-color, $step: config.$baseline) {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    #{$color} 0,
+    #{$color} 1px,
+    transparent 1px,
+    transparent #{$step}
+  );
+}
+
+/// Ready-made toggle class: add it to <body> (or any container) to see rows.
+.#{config.$prefix}-debug-grid {
+  @include grid-overlay;
+}

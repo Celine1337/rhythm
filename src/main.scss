@@ -1,0 +1,43 @@
+// -----------------------------------------------------------------------------
+// rhythm — main.scss
+//
+// Entry point of the toolkit. It plays two roles at once:
+//
+// 1. LIBRARY — every public partial is @forwarded, so a project can pull the
+//    whole API through one module. Configuration belongs to the config
+//    module (Sass only allows `with` on variables a module declares itself),
+//    so the canonical form is:
+//
+//        @use "rhythm/src/config" with ($prefix: "acme", $baseline: 0.25rem);
+//        @use "rhythm/src/main" as r;
+//        h2 { @include r.type("xl"); }
+//
+//    Sass modules are singletons per compilation: configuring config once
+//    re-tunes every partial that reads it, including the emitted tokens.
+//
+// 2. STYLESHEET — compiling this file (see build.sh) produces a complete,
+//    ready-to-link CSS layer: design tokens on :root, element defaults on
+//    the baseline grid, and the utility classes.
+// -----------------------------------------------------------------------------
+
+// Public API ------------------------------------------------------------------
+@forward "config";
+@forward "math";
+@forward "fluid";
+@forward "spacing";
+@forward "baseline";
+@forward "responsive";
+@forward "tokens";
+@forward "debug";
+
+// Output layer ----------------------------------------------------------------
+@use "tokens";
+@use "base";
+@use "utilities";
+@use "debug";
+
+// Custom properties resolve at computed-value time, so defining them after
+// the rules that consume them is perfectly valid CSS.
+:root {
+  @include tokens.root;
+}
